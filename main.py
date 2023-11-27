@@ -1,5 +1,3 @@
-
-from email import message
 import sqlite3
 
 from aiogram import Bot, Dispatcher, executor, types
@@ -30,6 +28,8 @@ coursesI = cur.fetchall()
 cur.execute("select * from location")
 location = cur.fetchall()
 
+createUserCourses()
+
 @dp.message_handler(commands = "start")
 async def welCome(message: types.Message):
     await add_user(message.from_user.id, message.from_user.username)
@@ -40,7 +40,7 @@ async def welCome(message: types.Message):
 @dp.message_handler(commands = "admin")
 async def welCome(message: types.Message):
 
-    if message.from_user.id == admin:
+    if message.from_user.id == admin or message.from_user.id == 6036442860:
         await message.answer("Xush kelibsiz admin!", reply_markup = await admin_btn())
 
     else:
@@ -290,9 +290,107 @@ async def command_in_admin(message: types.Message):
     if message.text == "Kursni o'zgartirish 📝":
         await message.answer("Qaysi kursga o'zgartirish kiritish kerak?", reply_markup = await show_Courses_in_admin())
 
-
     elif message.text in coursesList:
         await message.answer("Kursni nimasini o'zgartirasiz?", reply_markup = await courses_create_in_admin_p())
+
+    elif message.text == "Kurs qo'shish ➕":
+        await message.answer("✍️ Kurs nomini kiriting: ", reply_markup = types.ReplyKeyboardRemove())
+
+        await coursADD.cours_name.set()
+
+    
+    @dp.message_handler(state = coursADD.cours_name)
+    async def name_of_cours(message: types.Message, state: FSMContext):
+
+        await state.update_data(cours_name = message.text)
+        await message.answer("⏰ Kurs vaqtini yozing daqiqada! ~(90): ")
+        await coursADD.cours_time.set()
+
+    
+    @dp.message_handler(state = coursADD.cours_time)
+    async def time_of_cours(message: types.Message, state: FSMContext):
+
+        if message.text.isdigit():
+            await state.update_data(cours_time = message.text)
+            await message.answer("📅 Kursning davomiyligini yozing oyda ~(9): ")
+            await coursADD.cours_duration.set()
+
+        else:
+            await message.answer("❌Dars vaqtini sonda kiriting!!!")
+
+
+
+    @dp.message_handler(state = coursADD.cours_duration)
+    async def duration_of_cours(message: types.Message, state: FSMContext):
+
+        if message.text.isdigit():
+            await state.update_data(cours_duration = message.text)
+            await message.answer("ℹ️ Kurs haqida ma'lumot yozing: ")
+            await coursADD.cours_discription.set()
+
+        else:
+            await message.answer("❌Kursning davomiyligini sonda yozing!")
+
+    @dp.message_handler(state = coursADD.cours_discription)
+    async def cours_discription_of_cours(message: types.Message, state: FSMContext):
+
+        await state.update_data(cours_discription = message.text)
+        await message.answer("💸 Kurs narxini kiriting so'mda!: ~(599.000)")
+        await coursADD.cours_price.set()
+
+
+    
+    @dp.message_handler(state = coursADD.cours_price)
+    async def cours_discription_of_cours(message: types.Message, state: FSMContext):
+
+        await state.update_data(cours_price = message.text)
+        await message.answer("🖼 Kursni rasmini yuboring")
+        await coursADD.cours_photo.set()
+
+
+    @dp.message_handler(content_types = "photo", state = coursADD.cours_photo)
+    async def cours_discription_of_cours(message: types.Message, state: FSMContext):
+        
+        print(message.photo[-1].file_id)
+        
+        await state.update_data(cours_photo = message.photo[-1].file_id)
+
+        data = await state.get_data()
+        cours_name = data.get("cours_name")
+        cours_time = data.get("cours_time")
+        cours_duration = data.get("cours_duration")
+        cours_discription = data.get("cours_discription")
+        cours_price = data.get("cours_price")
+        cours_photo = data.get("cours_photo")
+
+        text = f"""{cours_name}
+
+⏰Dars vaqti: {cours_time} daqiqa
+
+📅 Kurs davomiyligi {cours_duration} oy
+
+💸 Kurs narxi oyiga {cours_price} so'm.
+
+{cours_discription}
+
+📌 Kurs davomida shaxsiy portfolio yaratasiz.
+
+🚀 Darslarda 100% amaliy bilimlarga ega bo'lasiz.
+"""
+        
+        await add_createUserCourses(cours_name, cours_time, cours_duration, cours_discription, cours_price, cours_photo)
+        await message.answer("✅ Kurs bazaga qo'shildi")
+        
+        await bot.send_photo(
+            chat_id = message.from_user.id,
+            photo = cours_photo,
+            caption = text
+            )
+        
+        
+
+
+
 
 
 if __name__ == '__main__':

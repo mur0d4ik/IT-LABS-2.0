@@ -1,4 +1,4 @@
-import re
+
 import sqlite3
 
 
@@ -14,14 +14,16 @@ async def createTables():
     )""")
 
 
-async def createUserCourses():
+def createUserCourses():
 
     cur.execute("""create table if not exists userCourses(
                 name varchar(100),
                 time varchar(6),
                 duration_time varchar(3),
                 duration varchar(3),
-                description text
+                description text,
+                price varchar(16),
+                photo text
     )""")
 
 
@@ -88,4 +90,10 @@ def search_location():
     for i in range(len(location)):
         location_list.append(location[i][-1])
 
+
+
+
+async def add_createUserCourses(name, time, duration_time, description, price, photo):
+    cur.execute(f"""insert into userCourses values("{name}", "{time}", "{duration_time}", "{description}", "{price}", "{photo}")""")
+    cnn.commit()
 

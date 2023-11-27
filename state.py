@@ -10,3 +10,16 @@ class cours(StatesGroup):
 
 
     check = State()
+
+
+
+class coursADD(StatesGroup):
+
+    cours_name = State()
+    cours_time = State()
+    cours_duration = State()
+    cours_discription = State()
+    cours_price = State()
+    cours_photo = State()
+
+    
